@@ -21,17 +21,13 @@ jobs:
 
       - name: Build
         run: |
-          useradd builder
-          su - builder
           git clone https://git.centos.org/centos-git-common.git
           git clone https://git.centos.org/rpms/net-snmp.git
           mkdir bin
           rsync -avHAX centos-git-common/ bin
           cd net-snmp
           git checkout c8
-          id
-          find / -type f -name get_sources.sh
-          get_sources.sh
+          ../bin/get_sources.sh
           rpmbuild --define "%_topdir `pwd`" --define '%netsnmp_check 0' -ba SPECS/net-snmp.spec
 
       - name: Upload RPMs
