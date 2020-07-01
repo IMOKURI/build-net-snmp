@@ -29,7 +29,9 @@ jobs:
           rsync -avHAX centos-git-common/ bin
           cd net-snmp
           git checkout c8
-          /home/builder/bin/get_sources.sh
+          id
+          find / -type f -name get_sources.sh
+          get_sources.sh
           rpmbuild --define "%_topdir `pwd`" --define '%netsnmp_check 0' -ba SPECS/net-snmp.spec
 
       - name: Upload RPMs
