@@ -9,26 +9,45 @@ jobs:
     container: centos:8
 
     steps:
-    - name: Install dependency
-      run: |
-        dnf install -y glibc-langpack-en
-        dnf install -y epel-release
-        dnf install -y 'dnf-command(config-manager)'
-        dnf config-manager --set-enabled PowerTools
-        dnf group install -y "Development Tools"
-        dnf install -y rpmdevtools rpmlint perl-Expect mariadb-devel perl-core perl-DBD-Pg openssl-devel postgresql-server postgresql-contrib automake rsync
-        dnf install -y bzip2-devel chrpath elfutils-devel elfutils-libelf-devel lm_sensors-devel net-tools python3-devel python3-setuptools rpm-devel
+      - name: Install dependency
+        run: |
+          dnf install -y glibc-langpack-en
+          dnf install -y epel-release
+          dnf install -y 'dnf-command(config-manager)'
+          dnf config-manager --set-enabled PowerTools
+          dnf group install -y "Development Tools"
+          dnf install -y rpmdevtools rpmlint perl-Expect mariadb-devel perl-core perl-DBD-Pg openssl-devel postgresql-server postgresql-contrib automake rsync
+          dnf install -y bzip2-devel chrpath elfutils-devel elfutils-libelf-devel lm_sensors-devel net-tools python3-devel python3-setuptools rpm-devel
 
-    - name: Build
-      run: |
-        useradd builder
-        su - builder
-        git clone https://git.centos.org/centos-git-common.git
-        git clone https://git.centos.org/rpms/net-snmp.git
-        mkdir bin
-        rsync -avHAX centos-git-common/ bin
-        cd net-snmp
-        git checkout c8
-        get_sources.sh
-        rpmbuild --define "%_topdir `pwd`" --define '%netsnmp_check 0' -ba SPECS/net-snmp.spec
+      - name: Build
+        run: |
+          useradd builder
+          su - builder
+          git clone https://git.centos.org/centos-git-common.git
+          git clone https://git.centos.org/rpms/net-snmp.git
+          mkdir bin
+          rsync -avHAX centos-git-common/ bin
+          cd net-snmp
+          git checkout c8
+          get_sources.sh
+          rpmbuild --define "%_topdir `pwd`" --define '%netsnmp_check 0' -ba SPECS/net-snmp.spec
+
+      - name: Upload RPMs
+        uses: actions/upload-artifact@v2
+        with:
+          name: rpms
+          path: /home/builder/net-snmp/RPMS/x86_64/
+
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download RPMs
+        uses: actions/download-artifact@v2
+        with:
+          name: rpms
+
+      - name: List RPMs
+        run: |
+          ls -l rpms
 
